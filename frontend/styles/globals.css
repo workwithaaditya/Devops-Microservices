@@ -160,6 +160,36 @@ button {
   white-space: pre-wrap;
 }
 
+.post-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 1rem;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.like-button:hover {
+  background-color: #f5f5f5;
+}
+
+.like-button.liked {
+  color: #e0245e;
+  font-weight: 500;
+}
+
 .empty {
   text-align: center;
   color: #666;

@@ -17,8 +17,23 @@ model Post {
   username  String   // Denormalized for performance
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  likes     Like[]   // Relation to likes
 
   @@map("posts")
   @@index([userId])
   @@index([createdAt(sort: Desc)]) // For feed ordering
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String   // References user from Auth Service
+  username  String   // Denormalized for performance
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("likes")
+  @@unique([postId, userId]) // Prevent duplicate likes
+  @@index([postId])
+  @@index([userId])
 }

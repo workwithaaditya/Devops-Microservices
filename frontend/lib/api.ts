@@ -16,6 +16,8 @@ export interface Post {
   username: string;
   createdAt: string;
   updatedAt: string;
+  likeCount: number;
+  isLikedByUser: boolean;
 }
 
 export const authService = {
@@ -73,17 +75,57 @@ export const postService = {
     return response.json();
   },
 
-  async getPosts(): Promise<{ posts: Post[] }> {
+  async getPosts(token?: string): Promise<{ posts: Post[] }> {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}/posts`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch posts');
+    }
+
+    return response.json();
+  },
+
+  async likePost(postId: string, token: string): Promise<{ message: string; likeCount: number }> {
+    const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to like post');
+    }
+
+    return response.json();
+  },
+
+  async unlikePost(postId: string, token: string): Promise<{ message: string; likeCount: number }> {
+    const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to unlike post');
     }
 
     return response.json();

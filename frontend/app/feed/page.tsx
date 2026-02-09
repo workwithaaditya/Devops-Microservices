@@ -28,12 +28,49 @@ export default function FeedPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await postService.getPosts();
+      const token = auth.getToken();
+      const response = await postService.getPosts(token || undefined);
       setPosts(response.posts);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch posts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const token = auth.getToken();
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      // Find the post
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      // Optimistically update UI
+      setPosts(posts.map(p => 
+        p.id === postId 
+          ? { 
+              ...p, 
+              isLikedByUser: !p.isLikedByUser,
+              likeCount: p.isLikedByUser ? p.likeCount - 1 : p.likeCount + 1
+            }
+          : p
+      ));
+
+      // Make API call
+      if (post.isLikedByUser) {
+        await postService.unlikePost(postId, token);
+      } else {
+        await postService.likePost(postId, token);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update like');
+      // Revert optimistic update on error
+      fetchPosts();
     }
   };
 
@@ -90,6 +127,15 @@ export default function FeedPage() {
                 <span className="post-date">{formatDate(post.createdAt)}</span>
               </div>
               <div className="post-content">{post.content}</div>
+              <div className="post-actions">
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className={`like-button ${post.isLikedByUser ? 'liked' : ''}`}
+                  aria-label={post.isLikedByUser ? 'Unlike post' : 'Like post'}
+                >
+                  {post.isLikedByUser ? '❤️' : '🤍'} {post.likeCount}
+                </button>
+              </div>
             </div>
           ))
         )}
